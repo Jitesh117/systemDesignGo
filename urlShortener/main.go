@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/Jitesh117/systemDesignGo/urlShortener/handlers"
 	urlStore "github.com/Jitesh117/systemDesignGo/urlShortener/logic"
@@ -9,9 +10,15 @@ import (
 )
 
 func main() {
-	store := urlStore.NewURLStore()
-	r := gin.Default()
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
 
+	store := urlStore.NewURLStore(redisAddr)
+	defer store.Close()
+
+	r := gin.Default()
 	r.POST("/shorten", handlers.ShortenHandler(store))
 	r.GET("/resolve/:shortURL", handlers.ResolveHandler(store))
 
